@@ -1,6 +1,7 @@
 WEBAPP_DIR=webapp
 API_DIR=api
 NGINX_DIR=nginx
+DATABASE_DIR=database
 
 SEPARATOR="---------------"
 
@@ -74,11 +75,38 @@ start-rabbitmq:
 	@echo "\n$(OK) [OK] rabbitmq service started $(RESET)\n"
 	@echo $(SEPARATOR)
 
+configure-database:
+	@echo "\n$(INFO) [INFO] Generating env file for database service $(RESET)\n"
+	cp ./$(DATABASE_DIR)/mariadb.env.dist ./$(DATABASE_DIR)/mariadb.env
+	cp ./$(DATABASE_DIR)/adminer.env.dist ./$(DATABASE_DIR)/adminer.env
+	@echo "\n$(OK) [OK] Generated env file for database service $(RESET)\n"
+	@echo $(SEPARATOR)
+
+start-database:
+	@echo "\n$(INFO) [INFO] Starting database service $(RESET)\n"
+	docker compose up -d database
+	@echo "\n$(OK) [OK] database service started $(RESET)\n"
+	@echo $(SEPARATOR)
+
+configure-adminer: 
+	@echo "\n$(INFO) [INFO] Generating env file for adminer service $(RESET)\n"
+	cp ./$(DATABASE_DIR)/adminer.env.dist ./$(DATABASE_DIR)/adminer.env
+	@echo "\n$(OK) [OK] Generated env file for adminer service $(RESET)\n"
+	@echo $(SEPARATOR)
+
+start-adminer:
+	@echo "\n$(INFO) [INFO] Starting adminer service $(RESET)\n"
+	docker compose up -d adminer
+	@echo "\n$(OK) [OK] adminer service started $(RESET)\n"
+	@echo $(SEPARATOR)
+
 start: start-redis \
 	   start-rabbitmq \
+	   start-database \
+	   start-adminer \
 	   start-api \
 	   start-webapp \
-	   start-nginx
+	   start-nginx 
 
 restart:
 	@echo "Stopping services"

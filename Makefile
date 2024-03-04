@@ -3,6 +3,8 @@ API_DIR=api
 NGINX_DIR=nginx
 DATABASE_DIR=database
 
+API_CMD=$(shell docker compose exec api)
+
 SEPARATOR="---------------"
 
 INFO=$(shell tput setab 3 && tput bold)
@@ -129,6 +131,9 @@ restart:
 ###############
 #  API UTILS  #
 ###############
+
+api-unit-tests:
+	$(API_CMD) php bin/phpunit
 
 ###################
 #  END API UTILS  #

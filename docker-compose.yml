@@ -1,5 +1,7 @@
 version: "3.8"
 
+name: t-web-800
+
 services:
   nginx:
     build:
@@ -36,3 +38,19 @@ services:
       - ../api:/app
     ports:
       - 9000:9000
+
+  redis:
+    image: redis:7.2.4-alpine3.19
+    container_name: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - /data
+    entrypoint: ["redis-server", "--save", "60", "1"]
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672

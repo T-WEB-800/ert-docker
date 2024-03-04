@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  nginx:
+    build:
+      context: ./nginx
+    container_name: nginx
+    volumes:
+      - ../api:/app
+      - ./nginx/symfony.conf:/etc/nginx/conf.d/symfony.conf
+    ports:
+      - 80:80
+    depends_on:
+      - webapp
+      - api
+
+  webapp:
+    container_name: webapp
+    build:
+      context: ../webapp
+    env_file:
+      - ./webapp/.env
+    ports:
+      - 8080:8080
+    volumes:
+      - ../webapp:/app
+    entrypoint: /app/entrypoint.sh
+
+  api:
+    container_name: api
+    build:
+      context: ../api
+    env_file:
+      - ./api/.env
+    volumes:
+      - ../api:/app
+    ports:
+      - 9000:9000

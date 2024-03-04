@@ -9,6 +9,11 @@ INFO=$(shell tput setab 3 && tput bold)
 OK=$(shell tput setab 2 && tput bold)
 RESET=$(shell tput sgr0)
 
+####################
+#  INFRASTRUCTURE  #
+####################
+
+
 configure-webapp: 
 	@echo $(SEPARATOR)
 	@echo "\n$(INFO) [INFO] Copying configuration files to webapp directory $(RESET)\n"
@@ -34,6 +39,7 @@ start-webapp: build-webapp
 configure-api: 
 	@echo "\n$(INFO) [INFO] Copying configuration files to api directory $(RESET)\n"
 	cp ./$(API_DIR)/.env.dist ../$(API_DIR)/.env
+	cp ./$(API_DIR)/php/xdebug.ini ../$(API_DIR)/xdebug.ini
 	cp ./$(API_DIR)/Dockerfile ../$(API_DIR)
 	cp ./$(API_DIR)/.dockerignore ../$(API_DIR)
 	@echo "\n$(OK) [OK] Copied configuration files to api directory $(RESET)\n"
@@ -113,3 +119,17 @@ restart:
 	@docker compose rm -s -f
 	@echo "Rebuilding & Restarting services"
 	@docker compose up -d
+
+
+########################
+#  END INFRASTRUCTURE  #
+########################
+
+
+###############
+#  API UTILS  #
+###############
+
+###################
+#  END API UTILS  #
+###################

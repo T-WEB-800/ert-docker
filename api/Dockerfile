@@ -11,6 +11,7 @@ RUN apk --no-cache add \
         libjpeg-turbo-dev \
         libpng-dev \
         libzip-dev \
+        linux-headers \
         zip \
         unzip \
         zlib-dev \
@@ -19,8 +20,14 @@ RUN apk --no-cache add \
         libxslt-dev \
         g++ \
         make \
-        autoconf \
-    && docker-php-ext-install -j$(nproc) gd pdo pdo_mysql zip intl soap xsl opcache
+        autoconf 
+
+RUN docker-php-ext-install -j$(nproc) gd pdo pdo_mysql zip intl soap xsl opcache
+
+# Install XDebug
+COPY ./xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+RUN pecl install xdebug-3.3.1
+RUN docker-php-ext-enable xdebug
 
 COPY . /app/
 

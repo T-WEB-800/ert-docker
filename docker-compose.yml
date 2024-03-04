@@ -1,0 +1,82 @@
+version: "3.8"
+
+name: t-web-800
+
+services:
+  nginx:
+    build:
+      context: ./nginx
+    container_name: nginx
+    volumes:
+      - ../api:/app
+      - ./nginx/symfony.conf:/etc/nginx/conf.d/symfony.conf
+    ports:
+      - 80:80
+    depends_on:
+      - webapp
+      - api
+
+  webapp:
+    container_name: webapp
+    build:
+      context: ../webapp
+    env_file:
+      - ./webapp/.env
+    ports:
+      - 8080:8080
+    volumes:
+      - ../webapp:/app
+    entrypoint: /app/entrypoint.sh
+
+  api:
+    container_name: api
+    build:
+      context: ../api
+    env_file:
+      - ./api/.env
+    volumes:
+      - ../api:/app
+    ports:
+      - 9000:9000
+
+  database:
+    container_name: database
+    image: mariadb:lts-jammy
+    env_file:
+      - ./database/mariadb.env
+
+  adminer:
+    container_name: adminer
+    image: adminer:4.8.1-standalone
+    env_file:
+      - ./database/adminer.env
+    ports:
+      - 8081:8080
+    depends_on:
+      - database
+
+  redis:
+    image: redis:7.2.4-alpine3.19
+    container_name: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - /data
+    entrypoint:
+      [
+        "redis-server",
+        "--save",
+        "60",
+        "1",
+        "--maxmemory",
+        "100mb",
+        "--maxmemory-policy",
+        "allkeys-lru",
+      ]
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672

@@ -71,7 +71,7 @@ configure-webapp:
 
 build: build-api \
 	   build-webapp \
-	build-nginx
+	   build-nginx
 
 build-api:
 	@echo "\n$(INFO) [INFO] Building api service $(RESET)\n"
@@ -156,6 +156,7 @@ start-nginx:
 ############
 #  FINISH  #
 ############
+
 finish: finish-api \
 		finish-webapp
 

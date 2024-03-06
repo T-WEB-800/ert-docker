@@ -1,6 +1,7 @@
 # Use PHP-FPM Alpine image
 FROM php:fpm-alpine3.19
 
+
 # Set working directory
 WORKDIR /app
 
@@ -29,15 +30,20 @@ COPY ./xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
 RUN pecl install xdebug-3.3.1
 RUN docker-php-ext-enable xdebug
 
-COPY . /app/
-
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-ENV COMPOSER_ALLOW_SUPERUSER=1
+
+# Copy files
+COPY . /app/
+
+# Switch user
+RUN chown -R 1000:1000 /app
+
+USER 1000:1000
 
 #Install Symfony dependencies
-RUN composer install --no-dev --no-scripts --optimize-autoloader
-ENV COMPOSER_ALLOW_SUPERUSER=0
+ENV COMPOSER_CACHE_DIR=/app/.composer/cache
+RUN composer install --no-cache --no-dev --no-scripts --optimize-autoloader
 
 # Start PHP-FPM
 CMD php-fpm

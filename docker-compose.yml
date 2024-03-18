@@ -3,80 +3,99 @@ version: "3.8"
 name: t-web-800
 
 services:
-    nginx:
-        build:
-            context: ./nginx
-        container_name: nginx
-        volumes:
-            - ../api:/app
-            - ./nginx/symfony.conf:/etc/nginx/conf.d/symfony.conf
-        ports:
-            - 80:80
-        depends_on:
-            - webapp
-            - api
+  ert-api-nginx:
+    container_name: ert-api-nginx
+    build:
+      context: ./nginx
+      dockerfile: ert-api/Dockerfile
+    volumes:
+      - ../ert-api:/app
+      - ./nginx/ert-api/ert-api.conf:/etc/nginx/conf.d/ert-api.conf
+    ports:
+      - 8080:80
+    depends_on:
+      - ert-api
 
-    webapp:
-        container_name: webapp
-        build:
-            context: ../webapp
-        env_file:
-            - ./webapp/.env
-        ports:
-            - 8080:8080
-        volumes:
-            - ../webapp:/app
-        entrypoint: /app/entrypoint.sh
+  ert-adapter-nginx:
+    container_name: ert-adapter-nginx
+    build:
+      context: ./nginx
+      dockerfile: ert-adapter/Dockerfile
+    volumes:
+      - ../ert-adapter:/app
+      - ./nginx/ert-adapter/ert-adapter.conf:/etc/nginx/conf.d/ert-adapter.conf
+    ports:
+      - 8081:80
+    depends_on:
+      - ert-adapter
 
-    api:
-        container_name: api
-        build:
-            context: ../api
-        env_file:
-            - ./api/.env
-        volumes:
-            - ../api:/app
-        ports:
-            - 9000:9000
+  ert-api:
+    container_name: ert-api
+    build:
+      context: ../ert-api
+    env_file:
+      - ./ert-api/.env
+    volumes:
+      - ../ert-api:/app
 
-    database:
-        container_name: database
-        image: mariadb:lts-jammy
-        env_file:
-            - ./database/mariadb.env
+  ert-adapter:
+    container_name: ert-adapter
+    build:
+      context: ../ert-adapter
+    env_file: ./ert-adapter/.env
+    volumes:
+      - ../ert-adapter:/app
 
-    adminer:
-        container_name: adminer
-        image: adminer:4.8.1-standalone
-        env_file:
-            - ./database/adminer.env
-        ports:
-            - 8081:8080
-        depends_on:
-            - database
+  webapp:
+    container_name: webapp
+    build:
+      context: ../webapp
+    env_file:
+      - ./webapp/.env
+    ports:
+      - 80:80
+    volumes:
+      - ../webapp:/app
+    entrypoint: /app/entrypoint.sh
 
-    redis:
-        image: redis:7.2.4-alpine3.19
-        container_name: redis
-        ports:
-            - 6379:6379
-        volumes:
-            - /data
-        entrypoint:
-            [
-                "redis-server",
-                "--save",
-                "60",
-                "1",
-                "--maxmemory",
-                "100mb",
-                "--maxmemory-policy",
-                "allkeys-lru",
-            ]
+  database:
+    container_name: database
+    image: mariadb:lts-jammy
+    env_file:
+      - ./database/mariadb.env
 
-    rabbitmq:
-        image: rabbitmq:management-alpine
-        container_name: rabbitmq
-        ports:
-            - 5672:5672
-            - 15672:15672
+  adminer:
+    container_name: adminer
+    image: adminer:4.8.1-standalone
+    env_file:
+      - ./database/adminer.env
+    ports:
+      - 8090:8080
+    depends_on:
+      - database
+
+  redis:
+    image: redis:7.2.4-alpine3.19
+    container_name: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - /data
+    entrypoint:
+      [
+        "redis-server",
+        "--save",
+        "60",
+        "1",
+        "--maxmemory",
+        "100mb",
+        "--maxmemory-policy",
+        "allkeys-lru",
+      ]
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672

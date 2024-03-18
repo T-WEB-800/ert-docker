@@ -1,5 +1,6 @@
 WEBAPP_DIR=webapp
-API_DIR=api
+ERT_API_DIR=ert-api
+ERT_ADAPTER_DIR=ert-adapter
 NGINX_DIR=nginx
 DATABASE_DIR=database
 
@@ -27,7 +28,8 @@ install: configure \
 
 configure: configure-database \
 		   configure-adminer \
-		   configure-api \
+		   configure-ert-api \
+		   configure-ert-adapter \
 		   configure-webapp
 
 configure-database:
@@ -63,28 +65,41 @@ configure-adminer:
 	@echo "\n$(OK) [OK] Generated env file for adminer service $(RESET)\n"
 	@echo $(SEPARATOR)
 
-configure-api: 
-	@echo "\n$(INFO) [INFO] Copying configuration files to api directory $(RESET)\n"
-	@cp ./$(API_DIR)/.env.dist ./$(API_DIR)/.env
+configure-ert-api: 
+	@echo "\n$(INFO) [INFO] Copying configuration files to ert-api directory $(RESET)\n"
+	@cp ./$(ERT_API_DIR)/.env.dist ./$(ERT_API_DIR)/.env
 
-	@sed -i "s/DATABASE_HOST=.*/DATABASE_HOST=\"database\"/" ./$(API_DIR)/.env;
-	@sed -i "s/DATABASE_PORT=.*/DATABASE_PORT=\"3306\"/" ./$(API_DIR)/.env;
+	@sed -i "s/DATABASE_HOST=.*/DATABASE_HOST=\"database\"/" ./$(ERT_API_DIR)/.env;
+	@sed -i "s/DATABASE_PORT=.*/DATABASE_PORT=\"3306\"/" ./$(ERT_API_DIR)/.env;
 
 	@DATABASE_USER=$$(grep -oP '^MARIADB_USER=\K.*' ./$(DATABASE_DIR)/mariadb.env); \
-	 sed -i "s/DATABASE_USER=.*/DATABASE_USER=$$DATABASE_USER/" ./$(API_DIR)/.env;
+	 sed -i "s/DATABASE_USER=.*/DATABASE_USER=$$DATABASE_USER/" ./$(ERT_API_DIR)/.env;
 
 	@DATABASE_PASSWORD=$$(grep -oP '^MARIADB_PASSWORD=\K.*' ./$(DATABASE_DIR)/mariadb.env); \
-	 sed -i "s/DATABASE_PASSWORD=.*/DATABASE_PASSWORD=$$DATABASE_PASSWORD/" ./$(API_DIR)/.env;
+	 sed -i "s/DATABASE_PASSWORD=.*/DATABASE_PASSWORD=$$DATABASE_PASSWORD/" ./$(ERT_API_DIR)/.env;
 
 	@DATABASE_NAME=$$(grep -oP '^MARIADB_DATABASE=\K.*' ./$(DATABASE_DIR)/mariadb.env); \
-	 sed -i "s/DATABASE_NAME=.*/DATABASE_NAME=$$DATABASE_NAME/" ./$(API_DIR)/.env;
+	 sed -i "s/DATABASE_NAME=.*/DATABASE_NAME=$$DATABASE_NAME/" ./$(ERT_API_DIR)/.env;
 
-	@cp ./$(API_DIR)/.env ../$(API_DIR)/.env
-	@cp ./$(API_DIR)/php/xdebug.ini ../$(API_DIR)/xdebug.ini
-	@cp ./$(API_DIR)/Dockerfile ../$(API_DIR)
-	@cp ./$(API_DIR)/.dockerignore ../$(API_DIR)
+	@cp ./$(ERT_API_DIR)/.env ../$(ERT_API_DIR)/.env
+	@cp ./$(ERT_API_DIR)/php/xdebug.ini ../$(ERT_API_DIR)/xdebug.ini
+	@cp ./$(ERT_API_DIR)/Dockerfile ../$(ERT_API_DIR)
+	@cp ./$(ERT_API_DIR)/.dockerignore ../$(ERT_API_DIR)
 
-	@echo "\n$(OK) [OK] Copied configuration files to api directory $(RESET)\n"
+	@echo "\n$(OK) [OK] Copied configuration files to ert-api directory $(RESET)\n"
+
+	@echo $(SEPARATOR)
+
+configure-ert-adapter: 
+	@echo "\n$(INFO) [INFO] Copying configuration files to ert-adapter directory $(RESET)\n"
+	@cp ./$(ERT_ADAPTER_DIR)/.env.dist ./$(ERT_ADAPTER_DIR)/.env
+
+	@cp ./$(ERT_ADAPTER_DIR)/.env ../$(ERT_ADAPTER_DIR)/.env
+	@cp ./$(ERT_ADAPTER_DIR)/php/xdebug.ini ../$(ERT_ADAPTER_DIR)/xdebug.ini
+	@cp ./$(ERT_ADAPTER_DIR)/Dockerfile ../$(ERT_ADAPTER_DIR)
+	@cp ./$(ERT_ADAPTER_DIR)/.dockerignore ../$(ERT_ADAPTER_DIR)
+
+	@echo "\n$(OK) [OK] Copied configuration files to ert-adapter directory $(RESET)\n"
 
 	@echo $(SEPARATOR)
 
@@ -106,14 +121,21 @@ configure-webapp:
 #  BUILD  #
 ###########
 
-build: build-api \
+build: build-ert-api \
+	   build-ert-adapter \
 	   build-webapp \
 	   build-nginx
 
-build-api:
-	@echo "\n$(INFO) [INFO] Building api service $(RESET)\n"
-	docker compose build api
-	@echo "\n$(OK) [OK] api service started $(RESET)\n"
+build-ert-api:
+	@echo "\n$(INFO) [INFO] Building ert-api service $(RESET)\n"
+	docker compose build ert-api
+	@echo "\n$(OK) [OK] ert-api service built $(RESET)\n"
+	@echo $(SEPARATOR)
+
+build-ert-adapter:
+	@echo "\n$(INFO) [INFO] Building ert-adapterq service $(RESET)\n"
+	docker compose build ert-adapter
+	@echo "\n$(OK) [OK] ert-adapter service built $(RESET)\n"
 	@echo $(SEPARATOR)
 
 build-webapp:
@@ -124,7 +146,8 @@ build-webapp:
 
 build-nginx:
 	@echo "\n$(INFO) [INFO] Building nginx service $(RESET)\n"
-	docker compose build nginx
+	docker compose build ert-api-nginx
+	docker compose build ert-adapter-nginx
 	@echo "\n$(OK) [OK] nginx service started $(RESET)\n"
 	@echo $(SEPARATOR)
 
@@ -140,7 +163,8 @@ start: start-redis \
 	   start-rabbitmq \
 	   start-database \
 	   start-adminer \
-	   start-api \
+	   start-ert-api \
+	   start-ert-adapter \
 	   start-webapp \
 	   start-nginx 
 
@@ -168,10 +192,16 @@ start-adminer:
 	@echo "\n$(OK) [OK] adminer service started $(RESET)\n"
 	@echo $(SEPARATOR)
 
-start-api:
-	@echo "\n$(INFO) [INFO] Starting api service $(RESET)\n"
-	docker compose up -d api
-	@echo "\n$(OK) [OK] api service started $(RESET)\n"
+start-ert-api:
+	@echo "\n$(INFO) [INFO] Starting ert-api service $(RESET)\n"
+	docker compose up -d ert-api
+	@echo "\n$(OK) [OK] ert-api service started $(RESET)\n"
+	@echo $(SEPARATOR)
+
+start-ert-adapter:
+	@echo "\n$(INFO) [INFO] Starting ert-adapter service $(RESET)\n"
+	docker compose up -d ert-adapter
+	@echo "\n$(OK) [OK] ert-adapter service started $(RESET)\n"
 	@echo $(SEPARATOR)
 
 start-webapp:
@@ -181,9 +211,10 @@ start-webapp:
 	@echo $(SEPARATOR)
 
 start-nginx:
-	@echo "\n$(INFO) [INFO] Starting nginx service $(RESET)\n"
-	docker compose up -d nginx
-	@echo "\n$(OK) [OK] nginx service started $(RESET)\n"
+	@echo "\n$(INFO) [INFO] Starting nginx services $(RESET)\n"
+	docker compose up -d ert-api-nginx
+	docker compose up -d ert-adapter-nginx
+	@echo "\n$(OK) [OK] nginx services started $(RESET)\n"
 	@echo $(SEPARATOR)
 
 ###############
@@ -194,11 +225,15 @@ start-nginx:
 #  FINISH  #
 ############
 
-finish: finish-api \
+finish: finish-ert-api \
+		finish-ert-adapter \
 		finish-webapp
 
-finish-api:
-	docker exec api composer install
+finish-ert-api:
+	docker exec ert-api composer install
+
+finish-ert-adapter:
+	docker exec ert-adapter composer install
 
 finish-webapp:
 	docker exec webapp npm i
@@ -207,19 +242,6 @@ finish-webapp:
 #  END FINISH  #
 ################
 
-
 ########################
 #  END INFRASTRUCTURE  #
 ########################
-
-
-###############
-#  API UTILS  #
-###############
-
-api-unit-tests:
-	$(API_CMD) php bin/phpunit
-
-###################
-#  END API UTILS  #
-###################
